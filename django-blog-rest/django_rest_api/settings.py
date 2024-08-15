@@ -63,7 +63,7 @@ MIDDLEWARE = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'api.auth.CookieAndHeaderJWTAuth',
-    )
+    ),
 }
 
 
