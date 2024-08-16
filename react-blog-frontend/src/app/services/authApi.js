@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { setTokens } from "../features/authSlice";
 import { API_BASE_URL } from "../../constants";
 
 export const authApi = createApi({
@@ -19,6 +20,16 @@ export const authApi = createApi({
                 url: 'auth/login/',
                 method: 'POST',
                 body: credentials,
+            }),
+            async onQueryStarted(args, {dispatch, queryFulfilled}){
+                try {
+                    const {data} = await queryFulfilled;
+                    console.log("Trying to set tokens", data);
+                    dispatch(setTokens(data));
+                } catch {
+                    //do nothing here the form handles the errors
+                }
+            }
         }),
         register: builder.mutation({
             query: (userData) => ({
@@ -26,8 +37,7 @@ export const authApi = createApi({
                 method: 'POST',
                 body: userData,
             }),
-      }),
-    }),
+        }),
   })
 })
   

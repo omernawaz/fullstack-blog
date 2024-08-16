@@ -11,15 +11,20 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
-import { Outlet } from "react-router-dom";
-import reactLogo from "../assets/react.svg";
+import { Outlet, useNavigate } from "react-router-dom";
 import Footer from "../components/navbar/Footer";
 import Logo from "../components/navbar/Logo";
+import { clearTokens } from "../app/features/authSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const pages = ["Browse", "Bloggers", "Write a Blog"];
 const settings = ["Profile", "Dashboard", "Logout"];
 
 function ResponsiveAppBar() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const loggedInUser = useSelector((state) => state.auth.user);
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
 
@@ -36,6 +41,19 @@ function ResponsiveAppBar() {
 
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
+  };
+
+  const handleSettings = (setting) => {
+    switch (setting) {
+      case "Logout":
+        dispatch(clearTokens());
+        handleCloseUserMenu();
+        navigate("/auth/login");
+        break;
+      default:
+        handleCloseUserMenu();
+        break;
+    }
   };
 
   return (
@@ -84,25 +102,7 @@ function ResponsiveAppBar() {
                   ))}
                 </Menu>
               </Box>
-              <Box sx={{ display: { xs: "flex", md: "none" }, mr: 1 }}>
-                <img src={reactLogo} />
-              </Box>
-              <Typography
-                variant="h5"
-                noWrap
-                sx={{
-                  mr: 2,
-                  display: { xs: "flex", md: "none" },
-                  flexGrow: 1,
-                  fontFamily: "monospace",
-                  fontWeight: 700,
-                  letterSpacing: ".3rem",
-                  color: "inherit",
-                  textDecoration: "none",
-                }}
-              >
-                THOUGHTS
-              </Typography>
+              <Logo displayBreakPoints={{ xs: "flex", md: "none" }} />
               <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
                 {pages.map((page) => (
                   <Button
@@ -118,10 +118,7 @@ function ResponsiveAppBar() {
               <Box sx={{ flexGrow: 0 }}>
                 <Tooltip title="Open settings">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar
-                      alt="Remy Sharp"
-                      src="/static/images/avatar/2.jpg"
-                    />
+                    <Avatar alt="Remy Sharp" src={loggedInUser.avatar} />
                   </IconButton>
                 </Tooltip>
                 <Menu
@@ -141,7 +138,10 @@ function ResponsiveAppBar() {
                   onClose={handleCloseUserMenu}
                 >
                   {settings.map((setting) => (
-                    <MenuItem key={setting} onClick={handleCloseUserMenu}>
+                    <MenuItem
+                      key={setting}
+                      onClick={() => handleSettings(setting)}
+                    >
                       <Typography textAlign="center">{setting}</Typography>
                     </MenuItem>
                   ))}

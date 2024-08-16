@@ -2,10 +2,10 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import reactLogo from "../../assets/react.svg";
 
-const Logo = () => {
+const Logo = ({ displayBreakPoints = { xs: "none", md: "flex" } }) => {
   return (
     <>
-      <Box sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}>
+      <Box sx={{ display: displayBreakPoints, mr: 1 }}>
         <img src={reactLogo} />
       </Box>
       <Typography
@@ -15,7 +15,7 @@ const Logo = () => {
         href="#app-bar-with-responsive-menu"
         sx={{
           mr: 2,
-          display: { xs: "none", md: "flex" },
+          display: displayBreakPoints,
           fontFamily: "monospace",
           fontWeight: 700,
           letterSpacing: ".3rem",
