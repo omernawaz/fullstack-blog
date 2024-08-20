@@ -16,8 +16,9 @@ import Footer from "../components/navbar/Footer";
 import Logo from "../components/navbar/Logo";
 import { clearTokens } from "../app/features/authSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { API_BASE_URL } from "../constants";
 
-const pages = ["Browse", "Bloggers", "Write a Blog"];
+const pages = ["Browse", "Feed", "Bloggers", "Write a Blog"];
 const settings = ["Profile", "Dashboard", "Logout"];
 
 function ResponsiveAppBar() {
@@ -44,14 +45,39 @@ function ResponsiveAppBar() {
   };
 
   const handleSettings = (setting) => {
+    handleCloseUserMenu();
     switch (setting) {
       case "Logout":
         dispatch(clearTokens());
-        handleCloseUserMenu();
         navigate("/auth/login");
         break;
+      case "Dashboard":
+        navigate("/users/" + loggedInUser.id);
+        break;
+      case "Profile":
+        navigate("/users/edit");
+        break;
       default:
-        handleCloseUserMenu();
+        break;
+    }
+  };
+
+  const handlePages = (page) => {
+    switch (page) {
+      case "Browse":
+        navigate("/");
+        break;
+      case "Bloggers":
+        navigate("/users/");
+        break;
+      case "Write a Blog":
+        navigate("/posts/add");
+        break;
+      case "Feed":
+        navigate("/posts/feed");
+        break;
+      default:
+        handleCloseNavMenu();
         break;
     }
   };
@@ -96,7 +122,7 @@ function ResponsiveAppBar() {
                   }}
                 >
                   {pages.map((page) => (
-                    <MenuItem key={page} onClick={handleCloseNavMenu}>
+                    <MenuItem key={page} onClick={() => handlePages(page)}>
                       <Typography textAlign="center">{page}</Typography>
                     </MenuItem>
                   ))}
@@ -107,7 +133,7 @@ function ResponsiveAppBar() {
                 {pages.map((page) => (
                   <Button
                     key={page}
-                    onClick={handleCloseNavMenu}
+                    onClick={() => handlePages(page)}
                     sx={{ my: 2, color: "white", display: "block" }}
                   >
                     {page}
@@ -118,7 +144,10 @@ function ResponsiveAppBar() {
               <Box sx={{ flexGrow: 0 }}>
                 <Tooltip title="Open settings">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar alt="Remy Sharp" src={loggedInUser.avatar} />
+                    <Avatar
+                      alt="Profile Image"
+                      src={API_BASE_URL + loggedInUser?.avatar}
+                    />
                   </IconButton>
                 </Tooltip>
                 <Menu

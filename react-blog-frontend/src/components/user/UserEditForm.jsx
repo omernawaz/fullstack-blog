@@ -1,40 +1,60 @@
-import { Grid, TextField, Button, Typography } from "@mui/material";
+import { Grid, TextField, Button, Typography, Avatar } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useRegisterMutation } from "../../app/services/restApi";
-import { useEffect } from "react";
+import { useEditUserMutation } from "../../app/services/restApi";
+import { useEffect, useState } from "react";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { styled } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
+import { API_BASE_URL_NOSLASH } from "../../constants";
 
-const SignupForm = () => {
-  const [register, { isLoading, isError, error, isSuccess }] =
-    useRegisterMutation();
+const VisuallyHiddenInput = styled("input")({
+  display: "none",
+});
+
+const UserEditForm = ({ user }) => {
+  const [updateUser, { isLoading, isError, error, isSuccess }] =
+    useEditUserMutation();
+
+  const navigate = useNavigate();
+
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(
+    API_BASE_URL_NOSLASH + user.avatar || ""
+  );
 
   const formik = useFormik({
     initialValues: {
-      username: "",
-      first_name: "",
-      last_name: "",
-      email: "",
+      username: user?.username || "",
+      first_name: user?.first_name || "",
+      last_name: user?.last_name || "",
+      email: user?.email || "",
       password: "",
       password_confirm: "",
     },
     onSubmit: async (values) => {
+      const formData = new FormData();
+      formData.append("id", user.id);
+      for (let key in values) {
+        if (values[key]) formData.append(key, values[key]);
+      }
+
+      if (avatarFile) {
+        formData.append("avatar", avatarFile);
+      }
+
       try {
-        await register(values).unwrap();
+        await updateUser(formData).unwrap();
+        setTimeout(() => navigate(`/users/${user.id}`));
       } catch {
-        //error handled by isError and error object
+        // error handled by isError and error object
       }
     },
     validationSchema: Yup.object({
-      username: Yup.string().required("Username is required"),
-      first_name: Yup.string().required("First Name is required"),
-      last_name: Yup.string().required("Last Name is required"),
-      email: Yup.string()
-        .required("Email is required")
-        .email("Invalid email address"),
-      password: Yup.string().required("You need to enter a password"),
+      password: Yup.string(),
       password_confirm: Yup.string().oneOf(
         [Yup.ref("password"), null],
-        "Passwords donot match"
+        "Passwords do not match"
       ),
     }),
   });
@@ -48,19 +68,54 @@ const SignupForm = () => {
     }
   }, [isError, error, formik]);
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
   return (
-    <form method="POST" onSubmit={formik.handleSubmit}>
+    <form
+      method="POST"
+      onSubmit={formik.handleSubmit}
+      encType="multipart/form-data"
+    >
       <Grid
         container
         justifyContent={"center"}
         alignItems={"center"}
-        gap={3}
+        gap={1}
         direction={"column"}
+        padding={2}
       >
-        <Typography variant="h5">Welcome to thoughts, join us!</Typography>
-        <Typography color={"inherit"} hidden={!isSuccess}>
-          You have been registered! You can now login.
+        <Typography variant="h5" marginBottom={3}>
+          Edit Your Profile
         </Typography>
+        <Typography color={"inherit"} hidden={!isSuccess}>
+          Profile updated successfully!
+        </Typography>
+
+        <Avatar
+          alt="Profile Picture"
+          src={avatarPreview}
+          sx={{ width: 100, height: 100 }}
+        />
+
+        <Button
+          component="label"
+          variant="contained"
+          startIcon={<CloudUploadIcon />}
+          sx={{ mt: 3, mb: 3 }}
+        >
+          Upload file
+          <VisuallyHiddenInput
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+          />
+        </Button>
 
         <TextField
           error={formik.errors.username && formik.touched.username}
@@ -73,16 +128,17 @@ const SignupForm = () => {
           name="username"
           label="Username"
           variant="outlined"
-          sx={{ width: "75%" }}
+          sx={{ width: "100%" }}
           value={formik.values.username}
           onChange={formik.handleChange}
         />
         <Grid
           container
-          justifyContent={"center"}
+          justifyContent={"space-between"}
           alignItems={"center"}
-          gap={0}
+          gap={2}
           direction="row"
+          sx={{ width: "100%" }}
         >
           <TextField
             error={formik.errors.first_name && formik.touched.first_name}
@@ -95,7 +151,7 @@ const SignupForm = () => {
             name="first_name"
             label="First Name"
             variant="outlined"
-            sx={{ width: "37.5%" }}
+            sx={{ width: "48%" }}
             value={formik.values.first_name}
             onChange={formik.handleChange}
           />
@@ -110,7 +166,7 @@ const SignupForm = () => {
             name="last_name"
             label="Last Name"
             variant="outlined"
-            sx={{ width: "37.5%" }}
+            sx={{ width: "48%" }}
             value={formik.values.last_name}
             onChange={formik.handleChange}
           />
@@ -125,7 +181,7 @@ const SignupForm = () => {
           label="Email"
           type="email"
           variant="outlined"
-          sx={{ width: "75%" }}
+          sx={{ width: "100%" }}
           value={formik.values.email}
           onChange={formik.handleChange}
         />
@@ -141,7 +197,7 @@ const SignupForm = () => {
           label="Password"
           type="password"
           variant="outlined"
-          sx={{ width: "75%" }}
+          sx={{ width: "100%" }}
           value={formik.values.password}
           onChange={formik.handleChange}
         />
@@ -159,16 +215,22 @@ const SignupForm = () => {
           label="Confirm Password"
           type="password"
           variant="outlined"
-          sx={{ width: "75%" }}
+          sx={{ width: "100%" }}
           value={formik.values.password_confirm}
           onChange={formik.handleChange}
         />
-        <Button type="submit" color="primary" variant="contained">
-          {isLoading ? "Signing you up..." : "Sign Up"}
+
+        <Button
+          type="submit"
+          color="primary"
+          variant="contained"
+          sx={{ width: "100%", mt: 3, mb: 3 }}
+        >
+          {isLoading ? "Updating..." : "Update Profile"}
         </Button>
       </Grid>
     </form>
   );
 };
 
-export default SignupForm;
+export default UserEditForm;

@@ -1,7 +1,7 @@
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { useLoginMutation } from "../../app/services/authApi";
+import { useLoginMutation } from "../../app/services/restApi";
 
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { Typography } from "@mui/material";
 
 const LoginForm = () => {
-  const [login, { isLoading, isError }] = useLoginMutation();
+  const [login, { isLoading, isError, error }] = useLoginMutation();
   const navigate = useNavigate();
   const formik = useFormik({
     initialValues: {
@@ -21,10 +21,7 @@ const LoginForm = () => {
         await login(values).unwrap();
         navigate("/");
       } catch {
-        //the error message is displayed on isError, so no need to handle it.
-        //currently the 500 error appears with an non-existing user...
-        //...Need to modify the api to fix it to return a json error message instead of the DoesNotExit HTML Page
-        //After that errors can be handled here.
+        //the error message is displayed on isError and error, so no need to handle it.
       }
     },
     validationSchema: Yup.object({
@@ -42,8 +39,11 @@ const LoginForm = () => {
         direction={"column"}
         gap={3}
       >
+        <Typography variant="h5">
+          Good to see you back, lets log you in!
+        </Typography>
         <Typography color={"red"} hidden={!isError}>
-          Invalid username or password
+          Authentication Failed: {isError && error.data.detail}
         </Typography>
         <TextField
           error={formik.errors.username && formik.touched.username}
