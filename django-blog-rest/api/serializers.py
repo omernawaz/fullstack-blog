@@ -6,12 +6,14 @@ class UserSerializer(serializers.ModelSerializer):
     posts = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     followers = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     following = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    avatar = serializers.ImageField(max_length=None, use_url=True)
     
     class Meta:
         model = models.User
-        fields =['id', 'username', 'password', 'first_name', 'last_name', 'email', 'avatar', 'followers', 'following','favourites', 'posts']
+        fields =['id', 'username', 'password', 'first_name', 'last_name', 'email', 'avatar', 'followers', 'following','favourites', 'posts', 'is_staff']
         extra_kwargs = {
-            'password': {'write_only': True}
+            'password': {'write_only': True},
+            'is_staff': {'read_only': True}
         }
         
     

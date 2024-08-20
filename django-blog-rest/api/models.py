@@ -17,4 +17,9 @@ class Post(models.Model):
 class User(AbstractUser):
     followers = models.ManyToManyField('self', symmetrical=False, related_name='following',blank=True)
     favourites = models.ManyToManyField(Post, related_name='favourited_by' ,blank=True)
-    avatar = models.URLField(default="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7gTERsv3nO-4I-R9C00Uor_m_nmxT0sE9Cg&s")
+    avatar = models.ImageField(
+        upload_to='avatars/',
+        blank=True,
+        null=True,
+        default='avatars/default.jpg'
+    )
